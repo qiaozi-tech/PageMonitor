@@ -18,7 +18,7 @@ var log = function (msg, type) {
 const defaultSettings = {
     //puppeteer.launch  config
     launch: {
-        headless: false
+        headless: true
     },
 };
 //Monitor.caupture config
@@ -33,8 +33,9 @@ const captureSettings = {
         quality: 80,
         fullPage: true,
     },
-    settings:{
-        userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X; en-us) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A465 Safari/9537.53'
+    settings: {
+        userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X; en-us) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A465 Safari/9537.53',
+        delay: 5000
     }
 };
 //Monitor.diff config
@@ -74,38 +75,33 @@ Monitor.prototype.init = async function () {
  * @return {Promise}
  * */
 Monitor.prototype.capture = async function (url, option) {
-    const {
-        page,
-        walk
-    } = option;
-    let status=0,
-        result=[];
+    const {page, walk} = option;
+    let status = 0,
+        result = {};
     await this.init();
-    await handlePageSetting(this.page, option);
-    this.emit('beforeCapture');
-    if (typeof url == 'string') url = [url];
-    for (const site in url) {
-        status++;
-        await this.page.goto(url[site],page).then(async res=>{
-            log('open:' + url[site]);
-        }).catch(e=>{
-            this.emit('Error', e);
-            status--;
-        });
-        let image = await this.page.screenshot(option.screenshot);
-        await this.page.evaluate(pdiff.walk, walk).then(res => {
-            result.push({
-                url: url[site],
-                dom: res,
-                screenshot: image
-            });
-        }).catch(e=>{
-            this.emit('Error', e);
-            status--;
-        });
-    }
-    log(`success:${status}; fail:${url.length - status}`);
-    return typeof url == 'string'?result[0]:result;
+    // await handlePageSetting(this.page, option);
+    this.emit('beforeCapture',{page:this.page,option});
+    status++;
+    await this.page.goto(url, page).then(async res => {
+        log('open:' + url);
+    }).catch(e => {
+        this.emit('Error', e);
+        status--;
+    });
+    let image = await this.page.screenshot(option.screenshot);
+    await this.page.evaluate(pdiff.walk, walk).then(res => {
+        result = {
+            url,
+            dom: res,
+            screenshot: image
+        }
+    }).catch(e => {
+        this.emit('Error', e);
+        status--;
+    });
+    this.browser.close();
+    log(`capture end`);
+    return result;
 };
 /**
  * from Monitor.capture return JSON to diff
@@ -115,7 +111,7 @@ Monitor.prototype.capture = async function (url, option) {
  * @return {Promise}
  * */
 Monitor.prototype.diff = async function (left, right, option) {
-    this.emit('beforeCapture');
+    this.emit('beforeDiff');
     let ret = null;
     try {
         ret = pdiff.diff(left, right, option);
@@ -126,11 +122,12 @@ Monitor.prototype.diff = async function (left, right, option) {
     return ret;
 };
 
-async function handlePageSetting(page,option) {
+//todo
+async function handlePageSetting(page, option) {
     let {settings} = option;
-    if (typeof settings.width=='number'&& typeof settings.height=='number') {
+    if (typeof settings.width == 'number' && typeof settings.height == 'number') {
         await page.setViewport({width: settings.width, height: settings.height});
-    }else if(settings.userAgent){
+    } else if (settings.userAgent) {
         await page.setUserAgent(settings.userAgent);
     }
 }
@@ -138,13 +135,12 @@ async function handlePageSetting(page,option) {
 server.on('request', (req, res) => {
     if (req.url == '/') {
         let c = new Monitor(defaultSettings);
-        c.capture(['https://www.baidu.com/','https://www.jd.com/'], captureSettings).then(res => {
-                c.diff(res[0].dom, res[1].dom).then(res=>{
-                })
-        }).catch(e=>{
+        c.capture('https://www.baidu.com/', captureSettings).then(res => {
+            console.log(res)
+        }).catch(e => {
             console.log(e)
         });
-        res.end('HOME');
+        res.end('asdddddd');
     }
 });
 server.listen(3000);

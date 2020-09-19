@@ -4,8 +4,8 @@
   "description": "Monitor page changes",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"，
-    "dev": "index.js"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "supervisor ./index.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +19,7 @@
   "homepage": "https://github.com/qiaozi-tech/PageMonitor#readme",
   "dependencies": {
     "page-diff": "^1.0.0",
-    "puppeteer": "^5.3.0"
+    "puppeteer": "^5.3.0",
+    "puppeteer-core": "^5.3.0"
   }
 }

@@ -1,0 +1,24 @@
+{
+  "name": "pagemonitor",
+  "version": "1.0.0",
+  "description": "Monitor page changes",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"，
+    "dev": "index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qiaozi-tech/PageMonitor.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/qiaozi-tech/PageMonitor/issues"
+  },
+  "homepage": "https://github.com/qiaozi-tech/PageMonitor#readme",
+  "dependencies": {
+    "page-diff": "^1.0.0",
+    "puppeteer": "^5.3.0"
+  }
+}
